@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baz Bros — Attribution Intelligence Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0b;
+  --bg2: #111114;
+  --bg3: #18181d;
+  --bg4: #1e1e25;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e8e8ec;
+  --text2: #8e8e9a;
+  --text3: #55555f;
+  --accent: #c8f060;
+  --accent2: #a8d040;
+  --google: #4e9cf5;
+  --meta: #7b68ef;
+  --amazon: #f5a623;
+  --ga4: #34d09b;
+  --red: #f06060;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 13px; line-height: 1.5; min-height: 100vh; }
+
+/* LAYOUT */
+.shell { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow: hidden; }
+.main { flex: 1; overflow: auto; }
+
+/* SIDEBAR */
+.logo { padding: 0 20px 28px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.logo-mark { font-family: var(--font-head); font-size: 18px; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+.logo-sub { font-size: 10px; color: var(--text3); font-family: var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+.nav-section { padding: 0 12px; margin-bottom: 6px; }
+.nav-label { font-size: 9px; font-family: var(--font-mono); color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; font-size: 12.5px; font-weight: 400; color: var(--text2); }
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: rgba(200,240,96,0.08); color: var(--accent); font-weight: 500; }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.nav-dot.google { background: var(--google); }
+.nav-dot.meta { background: var(--meta); }
+.nav-dot.amazon { background: var(--amazon); }
+.nav-dot.ga4 { background: var(--ga4); }
+.nav-dot.attr { background: var(--accent); }
+.sidebar-footer { margin-top: auto; padding: 16px 20px 0; border-top: 1px solid var(--border); }
+.period-pill { background: rgba(200,240,96,0.1); border: 1px solid rgba(200,240,96,0.2); color: var(--accent); font-family: var(--font-mono); font-size: 10px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.05em; }
+
+/* TOPBAR */
+.topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+.page-title { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--text); }
+.page-sub { font-size: 11px; color: var(--text3); font-family: var(--font-mono); margin-top: 2px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.btn { padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; border: none; cursor: pointer; font-family: var(--font-body); }
+.btn-ghost { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); }
+.btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+.btn-primary { background: var(--accent); color: #0a0a0b; font-weight: 600; }
+.btn-primary:hover { background: var(--accent2); }
+
+/* PAGE SECTIONS */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.content { padding: 28px 32px; }
+
+/* OVERVIEW KPIS */
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+.kpi { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+.kpi-label { font-size: 10px; font-family: var(--font-mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.kpi-value { font-family: var(--font-head); font-size: 26px; font-weight: 700; color: var(--text); line-height: 1; }
+.kpi-delta { font-size: 11px; margin-top: 6px; }
+.kpi-delta.up { color: var(--accent); }
+.kpi-delta.down { color: var(--red); }
+
+/* SECTION HEADER */
+.section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-title { font-family: var(--font-head); font-size: 14px; font-weight: 600; color: var(--text); }
+.section-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.tag { font-size: 10px; font-family: var(--font-mono); padding: 3px 8px; border-radius: 4px; }
+.tag-google { background: rgba(78,156,245,0.15); color: var(--google); }
+.tag-meta { background: rgba(123,104,239,0.15); color: var(--meta); }
+.tag-amazon { background: rgba(245,166,35,0.15); color: var(--amazon); }
+.tag-ga4 { background: rgba(52,208,155,0.15); color: var(--ga4); }
+.tag-attr { background: rgba(200,240,96,0.15); color: var(--accent); }
+
+/* TABLES */
+.tbl-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+.tbl-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--bg3); }
+th { font-size: 10px; font-family: var(--font-mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 400; }
+td { padding: 10px 16px; border-bottom: 1px solid var(--border); color: var(--text2); font-size: 12px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+td.mono { font-family: var(--font-mono); }
+td.highlight { color: var(--text); font-weight: 500; }
+.sparkbar { display: flex; align-items: center; gap: 8px; }
+.bar { height: 4px; border-radius: 2px; }
+
+/* GRID LAYOUTS */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; }
+.card-inner { padding: 18px; }
+.card-hd { font-size: 11px; font-family: var(--font-mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+
+/* FUNNEL */
+.funnel { padding: 16px 18px; }
+.funnel-step { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.funnel-bar-wrap { flex: 1; background: var(--bg3); border-radius: 4px; height: 28px; overflow: hidden; }
+.funnel-bar { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 10px; font-size: 11px; font-weight: 500; transition: width 0.6s ease; }
+.funnel-label { width: 120px; font-size: 11px; color: var(--text2); text-align: right; flex-shrink: 0; }
+.funnel-num { width: 70px; font-family: var(--font-mono); font-size: 11px; color: var(--text3); text-align: right; flex-shrink: 0; }
+.cvr-badge { font-size: 10px; font-family: var(--font-mono); color: var(--text3); margin-bottom: 4px; text-align: center; }
+
+/* DONUT CHART (CSS) */
+.donut-wrap { display: flex; align-items: center; gap: 24px; padding: 16px 18px; }
+.donut { width: 120px; height: 120px; border-radius: 50%; flex-shrink: 0; position: relative; }
+.donut-legend { flex: 1; }
+.legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.legend-label { font-size: 11px; color: var(--text2); flex: 1; }
+.legend-val { font-family: var(--font-mono); font-size: 11px; color: var(--text); }
+.legend-pct { font-family: var(--font-mono); font-size: 10px; color: var(--text3); width: 36px; text-align: right; }
+
+/* ATTRIBUTION COMPARISON */
+.attr-model-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.model-tab { padding: 6px 14px; border-radius: 6px; font-size: 11px; font-family: var(--font-mono); cursor: pointer; border: 1px solid var(--border); color: var(--text2); background: var(--bg3); transition: all 0.15s; }
+.model-tab.active { background: rgba(200,240,96,0.1); border-color: rgba(200,240,96,0.3); color: var(--accent); }
+.attr-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.attr-ch-label { width: 80px; font-size: 11px; color: var(--text2); text-align: right; }
+.attr-bar-track { flex: 1; background: var(--bg3); border-radius: 3px; height: 22px; overflow: hidden; }
+.attr-bar-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; padding: 0 8px; font-size: 10px; font-family: var(--font-mono); color: #0a0a0b; font-weight: 500; transition: width 0.5s ease; }
+.attr-val { width: 60px; font-family: var(--font-mono); font-size: 11px; color: var(--text); text-align: right; }
+
+/* ANALYSIS CALLOUT */
+.insight { background: rgba(200,240,96,0.04); border: 1px solid rgba(200,240,96,0.15); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+.insight-head { font-size: 11px; font-weight: 600; color: var(--accent); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.insight-body { font-size: 12px; color: var(--text2); line-height: 1.65; }
+.insight-body strong { color: var(--text); font-weight: 500; }
+.insight.warn { background: rgba(245,166,35,0.04); border-color: rgba(245,166,35,0.15); }
+.insight.warn .insight-head { color: var(--amazon); }
+.insight.danger { background: rgba(240,96,96,0.04); border-color: rgba(240,96,96,0.15); }
+.insight.danger .insight-head { color: var(--red); }
+
+/* SCATTER VISUAL */
+.scatter-wrap { padding: 16px 18px; position: relative; }
+.scatter-svg { width: 100%; height: 220px; }
+
+/* PLATFORM BADGE ROW */
+.platform-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.platform-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; font-family: var(--font-mono); }
+.platform-name { font-family: var(--font-head); font-size: 13px; font-weight: 600; }
+.platform-acct { font-size: 10px; color: var(--text3); font-family: var(--font-mono); }
+.live-pill { margin-left: auto; background: rgba(52,208,155,0.12); border: 1px solid rgba(52,208,155,0.25); color: var(--ga4); font-size: 9px; font-family: var(--font-mono); padding: 3px 8px; border-radius: 99px; display: flex; align-items: center; gap: 4px; }
+.live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ga4); animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* MINI KPI STRIP */
+.mini-kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; border-bottom: 1px solid var(--border); }
+.mini-kpi { padding: 12px 16px; border-right: 1px solid var(--border); }
+.mini-kpi:last-child { border-right: none; }
+.mini-kpi-label { font-size: 9px; font-family: var(--font-mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.mini-kpi-val { font-size: 15px; font-family: var(--font-head); font-weight: 700; color: var(--text); }
+.mini-kpi-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.mini-kpi-sub.good { color: var(--accent); }
+.mini-kpi-sub.bad { color: var(--red); }
+
+/* COMPARISON TABLE HIGHLIGHT */
+.model-diff { font-size: 10px; font-family: var(--font-mono); }
+.model-diff.up { color: var(--accent); }
+.model-diff.down { color: var(--red); }
+
+/* PATH VISUAL */
+.path-row { display: flex; align-items: center; gap: 0; margin-bottom: 8px; }
+.path-step { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 10px; font-family: var(--font-mono); color: var(--text2); white-space: nowrap; }
+.path-arrow { color: var(--text3); font-size: 10px; margin: 0 4px; }
+.path-conv { font-size: 10px; color: var(--text3); margin-left: auto; padding-left: 12px; white-space: nowrap; }
+.path-pct { font-family: var(--font-mono); color: var(--text); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* OVERLAP MATRIX */
+.matrix { width: 100%; border-collapse: collapse; }
+.matrix th, .matrix td { padding: 8px 10px; text-align: center; font-size: 11px; }
+.matrix th { font-family: var(--font-mono); font-size: 9px; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; }
+.cell-heat { border-radius: 4px; font-family: var(--font-mono); font-weight: 500; font-size: 11px; padding: 6px 8px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">BAZ BROS</div>
+      <div class="logo-sub">Attribution Hub · v2.1</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="showPage('overview', this)"><span class="nav-dot attr"></span>Executive Summary</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Platforms</div>
+      <div class="nav-item" onclick="showPage('google', this)"><span class="nav-dot google"></span>Google Ads</div>
+      <div class="nav-item" onclick="showPage('meta', this)"><span class="nav-dot meta"></span>Meta Ads</div>
+      <div class="nav-item" onclick="showPage('amazon', this)"><span class="nav-dot amazon"></span>Amazon Ads</div>
+      <div class="nav-item" onclick="showPage('ga4', this)"><span class="nav-dot ga4"></span>GA4 Analytics</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Attribution</div>
+      <div class="nav-item" onclick="showPage('attribution', this)"><span class="nav-dot attr"></span>Model Comparison</div>
+      <div class="nav-item" onclick="showPage('paths', this)"><span class="nav-dot attr"></span>Conversion Paths</div>
+      <div class="nav-item" onclick="showPage('analysis', this)"><span class="nav-dot attr"></span>Analyst Insights</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="period-pill">Jan 1 – Mar 31, 2026</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:8px;font-family:var(--font-mono);">Q1 2026 · 90 days · Projected</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Executive Summary</div>
+        <div class="page-sub" id="page-sub">Q1 2026 · All Channels · Los Angeles, CA · Projected</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost">↓ Export CSV</button>
+        <button class="btn btn-ghost">Share</button>
+        <button class="btn btn-primary">Refresh Data</button>
+      </div>
+    </div>
+    <div style="background:rgba(245,166,35,0.06);border-bottom:1px solid rgba(245,166,35,0.18);padding:8px 32px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:10px;font-family:var(--font-mono);color:var(--amazon);letter-spacing:0.06em;">◈ PROJECTED DATA</span>
+      <span style="font-size:11px;color:var(--text3);font-family:var(--font-mono);">Q1 2026 figures are forward projections modeled from H2 2025 actuals (Jul–Dec 2025). Attribution framework built by Kriti Singhal, CRM Media Analyst, joined Jul 2025.</span>
+    </div>
+
+    <!-- =================== OVERVIEW =================== -->
+    <div id="page-overview" class="page active">
+      <div class="content">
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi-label">Total Revenue</div>
+            <div class="kpi-value">$387K</div>
+            <div class="kpi-delta up">↑ 22.4% vs Q4 2025</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Total Ad Spend</div>
+            <div class="kpi-value">$58.4K</div>
+            <div class="kpi-delta up">↑ 8.1% vs Q4 2025</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Blended ROAS</div>
+            <div class="kpi-value">6.63×</div>
+            <div class="kpi-delta up">↑ 1.2× vs Q4 2025</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Attributed Orders</div>
+            <div class="kpi-value">1,847</div>
+            <div class="kpi-delta up">↑ 314 vs Q4 2025</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Avg Order Value</div>
+            <div class="kpi-value">$209</div>
+            <div class="kpi-delta up">↑ $18 vs Q4 2025</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Channel spend breakdown -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-hd">Spend & Revenue by Channel</div>
+              <div class="donut-wrap">
+                <svg class="donut" viewBox="0 0 120 120" style="transform:rotate(-90deg)">
+                  <circle cx="60" cy="60" r="46" fill="none" stroke="#1e1e25" stroke-width="22"/>
+                  <circle cx="60" cy="60" r="46" fill="none" stroke="#4e9cf5" stroke-width="22" stroke-dasharray="115 174" stroke-dashoffset="0"/>
+                  <circle cx="60" cy="60" r="46" fill="none" stroke="#7b68ef" stroke-width="22" stroke-dasharray="80 174" stroke-dashoffset="-115"/>
+                  <circle cx="60" cy="60" r="46" fill="none" stroke="#f5a623" stroke-width="22" stroke-dasharray="68 174" stroke-dashoffset="-195"/>
+                  <circle cx="60" cy="60" r="46" fill="none" stroke="#34d09b" stroke-width="22" stroke-dasharray="26 174" stroke-dashoffset="-263"/>
+                </svg>
+                <div class="donut-legend">
+                  <div class="legend-item"><div class="legend-dot" style="background:var(--google)"></div><div class="legend-label">Google Ads</div><div class="legend-val">$24.8K</div><div class="legend-pct">42%</div></div>
+                  <div class="legend-item"><div class="legend-dot" style="background:var(--meta)"></div><div class="legend-label">Meta Ads</div><div class="legend-val">$17.2K</div><div class="legend-pct">29%</div></div>
+                  <div class="legend-item"><div class="legend-dot" style="background:var(--amazon)"></div><div class="legend-label">Amazon Ads</div><div class="legend-val">$11.6K</div><div class="legend-pct">20%</div></div>
+                  <div class="legend-item"><div class="legend-dot" style="background:var(--ga4)"></div><div class="legend-label">Organic/SEO</div><div class="legend-val">$4.8K</div><div class="legend-pct">8%</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Revenue attributed -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-hd">Revenue by Channel (Data-Driven Attribution)</div>
+              <div style="margin-top:6px">
+                <div class="attr-bar-row"><div class="attr-ch-label">Google</div><div class="attr-bar-track"><div class="attr-bar-fill" style="width:52%;background:var(--google)">$201.2K</div></div><div class="attr-val">6.6×</div></div>
+                <div class="attr-bar-row"><div class="attr-ch-label">Meta</div><div class="attr-bar-track"><div class="attr-bar-fill" style="width:30%;background:var(--meta)">$115.8K</div></div><div class="attr-val">5.5×</div></div>
+                <div class="attr-bar-row"><div class="attr-ch-label">Amazon</div><div class="attr-bar-track"><div class="attr-bar-fill" style="width:16%;background:var(--amazon)">$58.1K</div></div><div class="attr-val">4.2×</div></div>
+                <div class="attr-bar-row"><div class="attr-ch-label">Organic</div><div class="attr-bar-track"><div class="attr-bar-fill" style="width:8%;background:var(--ga4)">$11.9K</div></div><div class="attr-val">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight">
+          <div class="insight-head">⚡ Key Finding — Attribution Gap</div>
+          <div class="insight-body">Last-click attribution over-credits Google Ads by <strong>+$34.2K</strong> and under-credits Meta by <strong>-$28.7K</strong>. Meta operates heavily as a discovery/assist channel — 62% of Meta-touched conversions have Google as the final click. Reallocating based on data-driven model would increase Meta budget by ~$4K/mo and reduce Google Search by ~$3K/mo, projected to lift blended ROAS by <strong>0.4×</strong>.</div>
+        </div>
+
+        <!-- Weekly trend table -->
+        <div class="tbl-wrap">
+          <div class="tbl-header">
+            <div>
+              <div class="section-title">Weekly Performance — All Channels (Projected)</div>
+              <div class="section-sub">Jan–Mar 2026 · Projected Revenue, Spend, ROAS · Based on H2 2025 trajectory</div>
+            </div>
+            <span class="tag tag-attr">Q1 2026 · Proj.</span>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Week</th><th>Google Rev</th><th>Meta Rev</th><th>Amazon Rev</th><th>Total Rev</th><th>Total Spend</th><th>Blended ROAS</th><th>Orders</th>
+            </tr></thead>
+            <tbody>
+              <tr><td class="mono highlight">Jan W1 2026</td><td class="mono" style="color:var(--google)">$14,820</td><td class="mono" style="color:var(--meta)">$7,940</td><td class="mono" style="color:var(--amazon)">$3,210</td><td class="mono highlight">$25,970</td><td class="mono">$4,140</td><td class="mono">6.27×</td><td class="mono">122</td></tr>
+              <tr><td class="mono highlight">Jan W2 2026</td><td class="mono" style="color:var(--google)">$16,480</td><td class="mono" style="color:var(--meta)">$9,120</td><td class="mono" style="color:var(--amazon)">$3,880</td><td class="mono highlight">$29,480</td><td class="mono">$4,490</td><td class="mono">6.56×</td><td class="mono">139</td></tr>
+              <tr><td class="mono highlight">Jan W3 2026</td><td class="mono" style="color:var(--google)">$13,950</td><td class="mono" style="color:var(--meta)">$8,240</td><td class="mono" style="color:var(--amazon)">$3,640</td><td class="mono highlight">$25,830</td><td class="mono">$4,220</td><td class="mono">6.12×</td><td class="mono">118</td></tr>
+              <tr><td class="mono highlight">Jan W4 2026</td><td class="mono" style="color:var(--google)">$18,200</td><td class="mono" style="color:var(--meta)">$10,870</td><td class="mono" style="color:var(--amazon)">$4,950</td><td class="mono highlight">$34,020</td><td class="mono">$5,180</td><td class="mono">6.57×</td><td class="mono">162</td></tr>
+              <tr><td class="mono highlight">Feb W1 2026</td><td class="mono" style="color:var(--google)">$15,340</td><td class="mono" style="color:var(--meta)">$8,920</td><td class="mono" style="color:var(--amazon)">$4,120</td><td class="mono highlight">$28,380</td><td class="mono">$4,380</td><td class="mono">6.48×</td><td class="mono">131</td></tr>
+              <tr><td class="mono highlight">Feb W2 2026</td><td class="mono" style="color:var(--google)">$19,860</td><td class="mono" style="color:var(--meta)">$13,240</td><td class="mono" style="color:var(--amazon)">$5,840</td><td class="mono highlight">$38,940</td><td class="mono">$5,840</td><td class="mono">6.67×</td><td class="mono">182</td></tr>
+              <tr><td class="mono highlight">Feb W3 2026</td><td class="mono" style="color:var(--google)">$17,120</td><td class="mono" style="color:var(--meta)">$11,380</td><td class="mono" style="color:var(--amazon)">$5,210</td><td class="mono highlight">$33,710</td><td class="mono">$4,920</td><td class="mono">6.85×</td><td class="mono">158</td></tr>
+              <tr><td class="mono highlight">Mar W1 2026</td><td class="mono" style="color:var(--google)">$21,440</td><td class="mono" style="color:var(--meta)">$14,820</td><td class="mono" style="color:var(--amazon)">$6,480</td><td class="mono highlight">$42,740</td><td class="mono">$6,280</td><td class="mono">6.80×</td><td class="mono">201</td></tr>
+              <tr><td class="mono highlight">Mar W2 2026</td><td class="mono" style="color:var(--google)">$22,680</td><td class="mono" style="color:var(--meta)">$15,340</td><td class="mono" style="color:var(--amazon)">$6,920</td><td class="mono highlight">$44,940</td><td class="mono">$6,620</td><td class="mono">6.79×</td><td class="mono">212</td></tr>
+              <tr><td class="mono highlight">Mar W3 2026</td><td class="mono" style="color:var(--google)">$24,820</td><td class="mono" style="color:var(--meta)">$16,980</td><td class="mono" style="color:var(--amazon)">$7,840</td><td class="mono highlight">$49,640</td><td class="mono">$7,080</td><td class="mono">7.01×</td><td class="mono">231</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== GOOGLE ADS =================== -->
+    <div id="page-google" class="page">
+      <div class="content">
+        <div class="tbl-wrap">
+          <div class="platform-header">
+            <div class="platform-icon" style="background:rgba(78,156,245,0.15);color:var(--google)">G</div>
+            <div><div class="platform-name" style="color:var(--google)">Google Ads</div><div class="platform-acct">Acct: 482-910-3847 · Baz Bros Vintage · Search + Shopping + PMax</div></div>
+            <div class="live-pill"><div class="live-dot"></div>Live</div>
+          </div>
+          <div class="mini-kpi-row">
+            <div class="mini-kpi"><div class="mini-kpi-label">Spend</div><div class="mini-kpi-val">$24,840</div><div class="mini-kpi-sub good">Budget utilization 96%</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Revenue</div><div class="mini-kpi-val">$201,240</div><div class="mini-kpi-sub good">↑ 19% vs H2 2025</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">ROAS</div><div class="mini-kpi-val">8.10×</div><div class="mini-kpi-sub good">Target: 6.0×</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Clicks</div><div class="mini-kpi-val">18,472</div><div class="mini-kpi-sub">CTR 3.84%</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Impressions</div><div class="mini-kpi-val">481K</div><div class="mini-kpi-sub">Avg Pos 2.1</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Conv. Rate</div><div class="mini-kpi-val">4.21%</div><div class="mini-kpi-sub good">↑ 0.8pp vs H2 2025</div></div>
+          </div>
+          <table>
+            <thead><tr><th>Campaign</th><th>Type</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>CPC</th><th>Spend</th><th>Conv.</th><th>Conv. Rate</th><th>Revenue</th><th>ROAS</th></tr></thead>
+            <tbody>
+              <tr><td class="highlight">Vintage Denim — Brand</td><td><span class="tag tag-google">Search</span></td><td class="mono">84,210</td><td class="mono">4,820</td><td class="mono">5.72%</td><td class="mono">$0.84</td><td class="mono">$4,049</td><td class="mono">318</td><td class="mono">6.60%</td><td class="mono" style="color:var(--accent)">$66,780</td><td class="mono highlight">16.5×</td></tr>
+              <tr><td class="highlight">Vintage Outerwear — NB</td><td><span class="tag tag-google">Search</span></td><td class="mono">112,480</td><td class="mono">3,940</td><td class="mono">3.50%</td><td class="mono">$1.42</td><td class="mono">$5,595</td><td class="mono">184</td><td class="mono">4.67%</td><td class="mono" style="color:var(--accent)">$38,640</td><td class="mono highlight">6.9×</td></tr>
+              <tr><td class="highlight">Shopping — All Products</td><td><span class="tag tag-google">Shopping</span></td><td class="mono">198,400</td><td class="mono">6,210</td><td class="mono">3.13%</td><td class="mono">$1.18</td><td class="mono">$7,328</td><td class="mono">201</td><td class="mono">3.24%</td><td class="mono" style="color:var(--accent)">$42,210</td><td class="mono highlight">5.8×</td></tr>
+              <tr><td class="highlight">PMax — Vintage Streetwear</td><td><span class="tag tag-google">PMax</span></td><td class="mono">74,320</td><td class="mono">2,848</td><td class="mono">3.83%</td><td class="mono">$2.06</td><td class="mono">$5,867</td><td class="mono">128</td><td class="mono">4.49%</td><td class="mono" style="color:var(--accent)">$33,920</td><td class="mono highlight">5.8×</td></tr>
+              <tr><td class="highlight">Remarketing — Cart Abandon</td><td><span class="tag tag-google">Display</span></td><td class="mono">11,590</td><td class="mono">654</td><td class="mono">5.64%</td><td class="mono">$3.07</td><td class="mono">$2,001</td><td class="mono">66</td><td class="mono">10.09%</td><td class="mono" style="color:var(--accent)">$19,690</td><td class="mono highlight">9.8×</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-header"><div class="section-title">Top Keywords — Search Campaigns</div><span class="tag tag-google">Q1 2026 · Proj.</span></div>
+          <table>
+            <thead><tr><th>Keyword</th><th>Match Type</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>CPC</th><th>Conv.</th><th>CPA</th><th>Revenue</th></tr></thead>
+            <tbody>
+              <tr><td class="highlight">vintage levi's jacket</td><td class="mono">Exact</td><td class="mono">12,840</td><td class="mono">1,028</td><td class="mono">8.01%</td><td class="mono">$0.72</td><td class="mono">82</td><td class="mono">$9.01</td><td class="mono" style="color:var(--accent)">$17,630</td></tr>
+              <tr><td class="highlight">90s vintage clothing wholesale</td><td class="mono">Phrase</td><td class="mono">8,420</td><td class="mono">640</td><td class="mono">7.60%</td><td class="mono">$1.14</td><td class="mono">48</td><td class="mono">$15.17</td><td class="mono" style="color:var(--accent)">$10,080</td></tr>
+              <tr><td class="highlight">baz brothers vintage</td><td class="mono">Broad</td><td class="mono">5,280</td><td class="mono">842</td><td class="mono">15.9%</td><td class="mono">$0.48</td><td class="mono">71</td><td class="mono">$5.70</td><td class="mono" style="color:var(--accent)">$14,910</td></tr>
+              <tr><td class="highlight">vintage band tees bulk</td><td class="mono">Phrase</td><td class="mono">9,840</td><td class="mono">520</td><td class="mono">5.28%</td><td class="mono">$1.82</td><td class="mono">31</td><td class="mono">$30.49</td><td class="mono" style="color:var(--accent)">$6,510</td></tr>
+              <tr><td class="highlight">wholesale vintage denim LA</td><td class="mono">Exact</td><td class="mono">4,120</td><td class="mono">318</td><td class="mono">7.72%</td><td class="mono">$2.14</td><td class="mono">24</td><td class="mono">$28.36</td><td class="mono" style="color:var(--accent)">$5,040</td></tr>
+              <tr><td class="highlight">vintage clothing supplier</td><td class="mono">Broad</td><td class="mono">14,280</td><td class="mono">420</td><td class="mono">2.94%</td><td class="mono">$1.94</td><td class="mono">18</td><td class="mono">$45.44</td><td class="mono" style="color:var(--accent)">$3,780</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight">
+          <div class="insight-head">📊 Google Ads Analysis</div>
+          <div class="insight-body">Brand search is delivering <strong>16.5× ROAS</strong> — well above targets, suggesting brand awareness built by Meta upper-funnel is converting efficiently here. The remarketing campaign (cart abandonment) shows <strong>10.09% CVR</strong>, the highest across all campaigns, pointing to a strong mid-funnel gap that Meta Ads and email could plug before relying on paid remarketing. Non-brand search keywords like "vintage clothing supplier" show a <strong>$45 CPA</strong> vs $9 for brand terms — consider shifting budget to Shopping where CPCs are lower and intent is comparable.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== META ADS =================== -->
+    <div id="page-meta" class="page">
+      <div class="content">
+        <div class="tbl-wrap">
+          <div class="platform-header">
+            <div class="platform-icon" style="background:rgba(123,104,239,0.15);color:var(--meta)">M</div>
+            <div><div class="platform-name" style="color:var(--meta)">Meta Ads</div><div class="platform-acct">Acct: act_1892047360 · Baz Bros Vintage · FB + IG + Reels + Stories</div></div>
+            <div class="live-pill"><div class="live-dot"></div>Live</div>
+          </div>
+          <div class="mini-kpi-row">
+            <div class="mini-kpi"><div class="mini-kpi-label">Spend</div><div class="mini-kpi-val">$17,240</div><div class="mini-kpi-sub good">Budget util. 89%</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Revenue (MTA)</div><div class="mini-kpi-val">$115,820</div><div class="mini-kpi-sub bad">LC: $87,140</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">ROAS (7d click)</div><div class="mini-kpi-val">5.53×</div><td class="mini-kpi-sub bad">LC ROAS: 4.17×</td></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Reach</div><div class="mini-kpi-val">284K</div><div class="mini-kpi-sub">Freq. 3.2</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Link Clicks</div><div class="mini-kpi-val">9,840</div><div class="mini-kpi-sub">CTR 3.46%</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">CPM</div><div class="mini-kpi-val">$60.70</div><div class="mini-kpi-sub bad">↑ $4.2 QoQ</div></div>
+          </div>
+          <table>
+            <thead><tr><th>Campaign</th><th>Objective</th><th>Reach</th><th>Impressions</th><th>CTR</th><th>CPM</th><th>Spend</th><th>Purchases</th><th>CPA</th><th>ROAS</th><th>Assist CVR</th></tr></thead>
+            <tbody>
+              <tr><td class="highlight">Vintage Haul — TOF Prospecting</td><td><span class="tag tag-meta">Sales</span></td><td class="mono">98,420</td><td class="mono">314,944</td><td class="mono">3.84%</td><td class="mono">$58.40</td><td class="mono">$5,830</td><td class="mono">148</td><td class="mono">$39.39</td><td class="mono" style="color:var(--accent)">5.2×</td><td class="mono">62%</td></tr>
+              <tr><td class="highlight">Lookalike 1% — LTV Champions</td><td><span class="tag tag-meta">Sales</span></td><td class="mono">54,180</td><td class="mono">173,376</td><td class="mono">4.12%</td><td class="mono">$54.20</td><td class="mono">$3,410</td><td class="mono">102</td><td class="mono">$33.43</td><td class="mono" style="color:var(--accent)">6.8×</td><td class="mono">41%</td></tr>
+              <tr><td class="highlight">IG Reels — Streetwear Creative</td><td><span class="tag tag-meta">Awareness</span></td><td class="mono">74,280</td><td class="mono">237,696</td><td class="mono">2.18%</td><td class="mono">$62.80</td><td class="mono">$4,980</td><td class="mono">68</td><td class="mono">$73.24</td><td class="mono">2.9×</td><td class="mono">81%</td></tr>
+              <tr><td class="highlight">Retargeting — Site Visitors 14d</td><td><span class="tag tag-meta">Sales</span></td><td class="mono">18,940</td><td class="mono">60,608</td><td class="mono">5.20%</td><td class="mono">$68.40</td><td class="mono">$2,020</td><td class="mono">84</td><td class="mono">$24.05</td><td class="mono" style="color:var(--accent)">8.4×</td><td class="mono">28%</td></tr>
+              <tr><td class="highlight">Winback — Lapsed 90d</td><td><span class="tag tag-meta">Sales</span></td><td class="mono">12,480</td><td class="mono">39,936</td><td class="mono">4.48%</td><td class="mono">$63.10</td><td class="mono">$1,000</td><td class="mono">38</td><td class="mono">$26.32</td><td class="mono" style="color:var(--accent)">7.2×</td><td class="mono">24%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-header"><div class="section-title">Creative Performance — Top Ads</div><span class="tag tag-meta">Q1 2026 · Proj.</span></div>
+          <table>
+            <thead><tr><th>Ad Name</th><th>Format</th><th>Spend</th><th>Impressions</th><th>CTR</th><th>Hook Rate</th><th>Hold Rate</th><th>Purchases</th><th>ROAS</th></tr></thead>
+            <tbody>
+              <tr><td class="highlight">Warehouse Walk — Jan 2026 Haul UGC</td><td class="mono">Reels</td><td class="mono">$2,840</td><td class="mono">94,667</td><td class="mono">4.82%</td><td class="mono">38%</td><td class="mono">61%</td><td class="mono">74</td><td class="mono" style="color:var(--accent)">7.8×</td></tr>
+              <tr><td class="highlight">90s Denim Wall Static</td><td class="mono">Image</td><td class="mono">$1,940</td><td class="mono">64,667</td><td class="mono">3.60%</td><td class="mono">—</td><td class="mono">—</td><td class="mono">52</td><td class="mono" style="color:var(--accent)">6.1×</td></tr>
+              <tr><td class="highlight">Thrift Haul GRWM Carousel</td><td class="mono">Carousel</td><td class="mono">$2,120</td><td class="mono">70,667</td><td class="mono">4.20%</td><td class="mono">—</td><td class="mono">—</td><td class="mono">61</td><td class="mono" style="color:var(--accent)">6.8×</td></tr>
+              <tr><td class="highlight">Vintage Flannels Try-On</td><td class="mono">Reels</td><td class="mono">$1,480</td><td class="mono">49,333</td><td class="mono">2.84%</td><td class="mono">22%</td><td class="mono">38%</td><td class="mono">24</td><td class="mono">3.2×</td></tr>
+              <tr><td class="highlight">Price Drop — Bulk Buyers</td><td class="mono">Story</td><td class="mono">$860</td><td class="mono">28,667</td><td class="mono">5.14%</td><td class="mono">—</td><td class="mono">—</td><td class="mono">31</td><td class="mono" style="color:var(--accent)">8.4×</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight">
+          <div class="insight-head">📊 Meta Ads Analysis</div>
+          <div class="insight-body">The 1% LTV Lookalike delivers a <strong>6.8× ROAS</strong> — the strongest paid prospecting ROAS on platform — validating that seeding lookalike audiences from your RFM Champion segment dramatically improves targeting efficiency. The IG Reels Awareness campaign shows a low direct ROAS (2.9×) but an <strong>81% assist conversion rate</strong> — meaning 81% of its attributed conversions were later completed through Google or retargeting. This is a classic assist channel being penalized by last-click. Under data-driven attribution, this campaign's contribution nearly doubles. The "Vintage Haul UGC" format outperforms every static creative on CTR and ROAS — a signal to invest more in creator-shot, walk-through-the-warehouse content.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== AMAZON ADS =================== -->
+    <div id="page-amazon" class="page">
+      <div class="content">
+        <div class="tbl-wrap">
+          <div class="platform-header">
+            <div class="platform-icon" style="background:rgba(245,166,35,0.15);color:var(--amazon)">A</div>
+            <div><div class="platform-name" style="color:var(--amazon)">Amazon Ads</div><div class="platform-acct">Store: BazBrosVintage · Seller Central · Sponsored Products + Brands + Display</div></div>
+            <div class="live-pill"><div class="live-dot"></div>Live</div>
+          </div>
+          <div class="mini-kpi-row">
+            <div class="mini-kpi"><div class="mini-kpi-label">Spend</div><div class="mini-kpi-val">$11,640</div><div class="mini-kpi-sub">Budget util. 82%</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Revenue</div><div class="mini-kpi-val">$58,100</div><div class="mini-kpi-sub bad">↓ 4% MoM</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">ACOS</div><div class="mini-kpi-val">20.0%</div><div class="mini-kpi-sub bad">Target: 18%</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">TACOS</div><div class="mini-kpi-val">14.2%</div><div class="mini-kpi-sub good">Organic lift</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Click-Throughs</div><div class="mini-kpi-val">6,284</div><div class="mini-kpi-sub">CTR 0.48%</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Units Sold</div><div class="mini-kpi-val">412</div><div class="mini-kpi-sub">Avg: $141 ASP</div></div>
+          </div>
+          <table>
+            <thead><tr><th>Campaign</th><th>Type</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>CPC</th><th>Spend</th><th>Sales</th><th>ACOS</th><th>Units</th></tr></thead>
+            <tbody>
+              <tr><td class="highlight">Vintage Denim — Auto</td><td><span class="tag tag-amazon">SP Auto</span></td><td class="mono">482,840</td><td class="mono">2,108</td><td class="mono">0.44%</td><td class="mono">$0.88</td><td class="mono">$1,855</td><td class="mono">$18,240</td><td class="mono">10.2%</td><td class="mono">128</td></tr>
+              <tr><td class="highlight">Vintage Outerwear — Manual</td><td><span class="tag tag-amazon">SP Manual</span></td><td class="mono">318,420</td><td class="mono">1,840</td><td class="mono">0.58%</td><td class="mono">$1.24</td><td class="mono">$2,282</td><td class="mono">$16,480</td><td class="mono">13.8%</td><td class="mono">114</td></tr>
+              <tr><td class="highlight">Brand Awareness — Sponsored Brands</td><td><span class="tag tag-amazon">SB</span></td><td class="mono">284,110</td><td class="mono">1,408</td><td class="mono">0.50%</td><td class="mono">$1.84</td><td class="mono">$2,591</td><td class="mono">$12,840</td><td class="mono">20.2%</td><td class="mono">88</td></tr>
+              <tr><td class="highlight">Retarget — Product Pages</td><td><span class="tag tag-amazon">SD</span></td><td class="mono">148,240</td><td class="mono">640</td><td class="mono">0.43%</td><td class="mono">$2.48</td><td class="mono">$1,587</td><td class="mono">$6,240</td><td class="mono">25.4%</td><td class="mono">42</td></tr>
+              <tr><td class="highlight">Vintage Graphic Tees — Auto</td><td><span class="tag tag-amazon">SP Auto</span></td><td class="mono">98,840</td><td class="mono">288</td><td class="mono">0.29%</td><td class="mono">$1.12</td><td class="mono">$323</td><td class="mono">$4,300</td><td class="mono">7.5%</td><td class="mono">40</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-header"><div class="section-title">Top ASINs by Ad Performance</div><span class="tag tag-amazon">Q1 2026 · Proj.</span></div>
+          <table>
+            <thead><tr><th>ASIN</th><th>Product</th><th>Impressions</th><th>Clicks</th><th>Sales</th><th>ACOS</th><th>Organic Rank</th><th>BSR</th></tr></thead>
+            <tbody>
+              <tr><td class="mono highlight">B09X4KL28M</td><td>Levi's 501 Deadstock Denim Bundle</td><td class="mono">148,420</td><td class="mono">824</td><td class="mono" style="color:var(--accent)">$12,480</td><td class="mono">8.4%</td><td class="mono">Pg 1, #3</td><td class="mono">#284</td></tr>
+              <tr><td class="mono highlight">B0A2MN91PQ</td><td>Y2K Vintage Outerwear Mixed Box</td><td class="mono">94,280</td><td class="mono">540</td><td class="mono" style="color:var(--accent)">$9,720</td><td class="mono">12.1%</td><td class="mono">Pg 1, #7</td><td class="mono">#512</td></tr>
+              <tr><td class="mono highlight">B08QWR47TC</td><td>Vintage Band Tees 10-Pack</td><td class="mono">76,840</td><td class="mono">420</td><td class="mono" style="color:var(--accent)">$7,140</td><td class="mono">15.8%</td><td class="mono">Pg 2, #2</td><td class="mono">#1,024</td></tr>
+              <tr><td class="mono highlight">B0C8VPX2WL</td><td>Vintage Flannel Shirts Assorted</td><td class="mono">48,420</td><td class="mono">280</td><td class="mono">$4,480</td><td class="mono">22.4%</td><td class="mono">Pg 2, #8</td><td class="mono">#2,140</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight warn">
+          <div class="insight-head">⚠️ Amazon Attribution Gap</div>
+          <div class="insight-body">Amazon's Sponsored Display retargeting shows a <strong>25.4% ACOS</strong> — above the 18% target. However, TACOS (total ACOS including organic sales) is <strong>14.2%</strong>, meaning ad spend is driving organic rank improvements that partially justify the higher ACOS. Recommendation: reduce SD bids by 15% and reinvest in Sponsored Products for the top 2 ASINs, where ACOS is sub-13%. Amazon traffic rarely overlaps with Google/Meta path data — treat Amazon as a parallel conversion channel, not an assist, when building cross-channel attribution.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== GA4 =================== -->
+    <div id="page-ga4" class="page">
+      <div class="content">
+        <div class="tbl-wrap">
+          <div class="platform-header">
+            <div class="platform-icon" style="background:rgba(52,208,155,0.15);color:var(--ga4)">G4</div>
+            <div><div class="platform-name" style="color:var(--ga4)">Google Analytics 4</div><div class="platform-acct">Property: 384-920-4710 · bazbrosvintage.com · Enhanced Ecommerce</div></div>
+            <div class="live-pill"><div class="live-dot"></div>Realtime: 14 active</div>
+          </div>
+          <div class="mini-kpi-row">
+            <div class="mini-kpi"><div class="mini-kpi-label">Sessions</div><div class="mini-kpi-val">84,210</div><div class="mini-kpi-sub good">↑ 18% vs H2 2025</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Users</div><div class="mini-kpi-val">61,480</div><div class="mini-kpi-sub good">↑ 21% vs H2 2025</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Engagement Rate</div><div class="mini-kpi-val">61.4%</div><div class="mini-kpi-sub good">↑ 4.1pp vs H2 2025</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Conversions</div><div class="mini-kpi-val">1,847</div><div class="mini-kpi-sub">CVR 2.19%</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Revenue</div><div class="mini-kpi-val">$329K</div><div class="mini-kpi-sub bad">vs $387K paid</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-label">Avg Session</div><div class="mini-kpi-val">3m 42s</div><div class="mini-kpi-sub good">↑ 28s QoQ</div></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="tbl-wrap" style="margin-bottom:0">
+            <div class="tbl-header"><div class="section-title">Traffic by Channel Group</div><span class="tag tag-ga4">GA4 Default</span></div>
+            <table>
+              <thead><tr><th>Channel</th><th>Sessions</th><th>Eng. Rate</th><th>Revenue</th><th>CVR</th></tr></thead>
+              <tbody>
+                <tr><td class="highlight">Paid Search</td><td class="mono">28,420</td><td class="mono">58.2%</td><td class="mono" style="color:var(--accent)">$148,240</td><td class="mono">3.84%</td></tr>
+                <tr><td class="highlight">Paid Social</td><td class="mono">18,840</td><td class="mono">54.8%</td><td class="mono" style="color:var(--accent)">$78,420</td><td class="mono">2.84%</td></tr>
+                <tr><td class="highlight">Organic Search</td><td class="mono">14,280</td><td class="mono">72.4%</td><td class="mono" style="color:var(--accent)">$41,840</td><td class="mono">2.14%</td></tr>
+                <tr><td class="highlight">Email</td><td class="mono">8,420</td><td class="mono">78.4%</td><td class="mono" style="color:var(--accent)">$38,480</td><td class="mono">4.21%</td></tr>
+                <tr><td class="highlight">Direct</td><td class="mono">9,840</td><td class="mono">62.4%</td><td class="mono">$14,840</td><td class="mono">1.12%</td></tr>
+                <tr><td class="highlight">Referral</td><td class="mono">4,410</td><td class="mono">64.2%</td><td class="mono">$7,160</td><td class="mono">1.48%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tbl-wrap" style="margin-bottom:0">
+            <div class="tbl-header"><div class="section-title">Funnel — Purchase Journey</div><span class="tag tag-ga4">Enhanced Ecomm</span></div>
+            <div class="funnel">
+              <div class="cvr-badge"></div>
+              <div class="funnel-step"><div class="funnel-label">Session start</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:rgba(52,208,155,0.7);color:#0a0a0b">84,210</div></div></div>
+              <div class="funnel-step"><div class="funnel-label">Product view</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:72%;background:rgba(52,208,155,0.6);color:#0a0a0b">60,631 (72%)</div></div></div>
+              <div class="funnel-step"><div class="funnel-label">Add to cart</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:38%;background:rgba(52,208,155,0.5);color:#0a0a0b">32,000 (53%)</div></div></div>
+              <div class="funnel-step"><div class="funnel-label">Begin checkout</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:20%;background:rgba(52,208,155,0.4);color:#111">16,842 (53%)</div></div></div>
+              <div class="funnel-step"><div class="funnel-label">Payment info</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:14%;background:rgba(52,208,155,0.3);color:#555">11,789 (70%)</div></div></div>
+              <div class="funnel-step"><div class="funnel-label">Purchase</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:9%;background:rgba(52,208,155,0.8);color:#0a0a0b">7,588 (64%)</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px"></div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-header"><div class="section-title">Landing Page Performance</div><span class="tag tag-ga4">Paid Traffic Only</span></div>
+          <table>
+            <thead><tr><th>Landing Page</th><th>Sessions</th><th>Bounce Rate</th><th>Avg Time</th><th>Add-to-Cart</th><th>Revenue</th><th>CVR</th></tr></thead>
+            <tbody>
+              <tr><td class="highlight">/collections/vintage-denim</td><td class="mono">12,840</td><td class="mono">28.4%</td><td class="mono">4m 12s</td><td class="mono">42.1%</td><td class="mono" style="color:var(--accent)">$58,240</td><td class="mono">3.84%</td></tr>
+              <tr><td class="highlight">/products/levis-501-bundle</td><td class="mono">8,420</td><td class="mono">22.1%</td><td class="mono">5m 38s</td><td class="mono">51.2%</td><td class="mono" style="color:var(--accent)">$48,180</td><td class="mono">4.92%</td></tr>
+              <tr><td class="highlight">/collections/outerwear</td><td class="mono">7,840</td><td class="mono">34.8%</td><td class="mono">3m 22s</td><td class="mono">34.8%</td><td class="mono" style="color:var(--accent)">$31,260</td><td class="mono">2.84%</td></tr>
+              <tr><td class="highlight">/pages/wholesale</td><td class="mono">4,280</td><td class="mono">42.1%</td><td class="mono">2m 48s</td><td class="mono">18.4%</td><td class="mono">$12,840</td><td class="mono">1.84%</td></tr>
+              <tr><td class="highlight">/</td><td class="mono">14,820</td><td class="mono">51.2%</td><td class="mono">1m 52s</td><td class="mono">12.4%</td><td class="mono">$18,420</td><td class="mono">1.12%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight">
+          <div class="insight-head">📊 GA4 Analysis — Revenue Discrepancy</div>
+          <div class="insight-body">GA4 reports <strong>$329K</strong> in revenue vs <strong>$387K</strong> across platform-reported numbers — a <strong>$58K discrepancy</strong>. This is expected: (1) Meta's 7-day view-through window claims conversions that occur outside a session (no GA4 event fired), (2) Amazon transactions don't pass back to GA4, (3) iOS 14.5+ limits Meta pixel tracking for ~38% of iOS traffic. The GA4 number is the most conservative (click-based) attribution. The email channel is the <strong>highest CVR channel at 4.21%</strong> despite receiving zero paid spend — indicating a high-intent audience that should be grown through list acquisition campaigns. The homepage has a <strong>51% bounce rate</strong> from paid traffic — a landing page optimization priority.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== ATTRIBUTION MODEL =================== -->
+    <div id="page-attribution" class="page">
+      <div class="content">
+        <div class="attr-model-tabs">
+          <div class="model-tab active" onclick="setModel('lc', this)">Last Click</div>
+          <div class="model-tab" onclick="setModel('fc', this)">First Click</div>
+          <div class="model-tab" onclick="setModel('lin', this)">Linear</div>
+          <div class="model-tab" onclick="setModel('td', this)">Time Decay</div>
+          <div class="model-tab" onclick="setModel('dd', this)">Data-Driven</div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-inner">
+            <div class="card-hd">Revenue attribution by model — all channels</div>
+            <div id="attr-bars"></div>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-header"><div class="section-title">Full Attribution Comparison Table</div><span class="tag tag-attr">All 5 Models</span></div>
+          <table>
+            <thead><tr><th>Channel</th><th>Last Click</th><th>First Click</th><th>Linear</th><th>Time Decay</th><th>Data-Driven</th><th>Δ LC→DD</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="highlight" style="color:var(--google)">Google Paid Search</td>
+                <td class="mono">$148,240</td><td class="mono">$92,840</td><td class="mono">$118,420</td><td class="mono">$138,480</td><td class="mono">$114,060</td>
+                <td class="mono model-diff down">−$34,180</td>
+              </tr>
+              <tr>
+                <td class="highlight" style="color:var(--meta)">Meta Ads</td>
+                <td class="mono">$87,140</td><td class="mono">$142,840</td><td class="mono">$114,280</td><td class="mono">$94,820</td><td class="mono">$115,820</td>
+                <td class="mono model-diff up">+$28,680</td>
+              </tr>
+              <tr>
+                <td class="highlight" style="color:var(--amazon)">Amazon Ads</td>
+                <td class="mono">$58,100</td><td class="mono">$54,280</td><td class="mono">$56,840</td><td class="mono">$57,480</td><td class="mono">$58,100</td>
+                <td class="mono model-diff">±$0</td>
+              </tr>
+              <tr>
+                <td class="highlight" style="color:var(--ga4)">Organic Search</td>
+                <td class="mono">$24,840</td><td class="mono">$42,840</td><td class="mono">$32,840</td><td class="mono">$28,480</td><td class="mono">$38,480</td>
+                <td class="mono model-diff up">+$13,640</td>
+              </tr>
+              <tr>
+                <td class="highlight">Email / CRM</td>
+                <td class="mono">$38,480</td><td class="mono">$12,840</td><td class="mono">$28,420</td><td class="mono">$36,240</td><td class="mono">$28,840</td>
+                <td class="mono model-diff down">−$9,640</td>
+              </tr>
+              <tr>
+                <td class="highlight">Direct</td>
+                <td class="mono">$14,840</td><td class="mono">$24,840</td><td class="mono">$16,840</td><td class="mono">$12,840</td><td class="mono">$11,940</td>
+                <td class="mono model-diff down">−$2,900</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Channel overlap -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-inner">
+            <div class="card-hd">Channel assist overlap — % of conversions where channel appeared in path</div>
+            <table class="matrix">
+              <thead><tr><th></th><th style="color:var(--google)">Google</th><th style="color:var(--meta)">Meta</th><th style="color:var(--amazon)">Amazon</th><th style="color:var(--ga4)">Organic</th><th>Email</th></tr></thead>
+              <tbody>
+                <tr>
+                  <th style="color:var(--google);text-align:right;font-size:10px;font-family:var(--font-mono)">Google</th>
+                  <td><div class="cell-heat" style="background:rgba(78,156,245,0.5);color:var(--text)">100%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(78,156,245,0.2);color:var(--text2)">62%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(78,156,245,0.08);color:var(--text3)">18%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(78,156,245,0.3);color:var(--text2)">44%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(78,156,245,0.15);color:var(--text3)">31%</div></td>
+                </tr>
+                <tr>
+                  <th style="color:var(--meta);text-align:right;font-size:10px;font-family:var(--font-mono)">Meta</th>
+                  <td><div class="cell-heat" style="background:rgba(123,104,239,0.2);color:var(--text2)">58%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(123,104,239,0.5);color:var(--text)">100%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(123,104,239,0.06);color:var(--text3)">12%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(123,104,239,0.14);color:var(--text3)">28%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(123,104,239,0.22);color:var(--text2)">42%</div></td>
+                </tr>
+                <tr>
+                  <th style="color:var(--amazon);text-align:right;font-size:10px;font-family:var(--font-mono)">Amazon</th>
+                  <td><div class="cell-heat" style="background:rgba(245,166,35,0.06);color:var(--text3)">8%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(245,166,35,0.06);color:var(--text3)">7%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(245,166,35,0.5);color:var(--text)">100%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(245,166,35,0.06);color:var(--text3)">6%</div></td>
+                  <td><div class="cell-heat" style="background:rgba(245,166,35,0.06);color:var(--text3)">9%</div></td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="margin-top:10px;font-size:11px;color:var(--text3);font-family:var(--font-mono)">Read as: "X% of Google conversions also had a Meta touchpoint in the path." Amazon operates almost entirely in isolation.</div>
+          </div>
+        </div>
+
+        <div class="insight">
+          <div class="insight-head">⚡ Attribution Model Recommendation</div>
+          <div class="insight-body">The <strong>data-driven model</strong> is the recommended attribution standard for Baz Bros. Key rationale: (1) Meta's influence is structurally undervalued by last-click — 62% of Google conversions passed through a Meta touchpoint first, (2) Amazon is a closed ecosystem and should be measured independently with TACOS, not cross-channel attribution, (3) Direct traffic at 14.8K sessions likely contains misattributed paid social (iOS traffic with no click ID). Implementing UTM enforcement on all paid links + GA4 data-driven attribution will reduce reported ROAS for Google by ~18% while more accurately reflecting Meta's role in the funnel. Budget reallocation should follow.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== PATHS =================== -->
+    <div id="page-paths" class="page">
+      <div class="content">
+        <div class="tbl-wrap">
+          <div class="tbl-header">
+            <div><div class="section-title">Top Conversion Paths — Q1 2025</div><div class="section-sub">Ordered by path revenue contribution · Multi-touch · 847 paths analyzed</div></div>
+            <span class="tag tag-attr">30-day window</span>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Conversion Path</th><th>Conversions</th><th>Revenue</th><th>Avg Path Length</th><th>Avg Days</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="mono" style="color:var(--text3)">1</td>
+                <td>
+                  <div class="path-row" style="margin:0;flex-wrap:wrap;gap:4px">
+                    <span class="path-step" style="border-color:rgba(123,104,239,0.3);color:var(--meta)">Meta Reels</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(78,156,245,0.3);color:var(--google)">Google Brand</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(52,208,155,0.3);color:var(--ga4)">Direct</span>
+                  </div>
+                </td>
+                <td class="mono highlight">284</td><td class="mono" style="color:var(--accent)">$61,480</td><td class="mono">3.0</td><td class="mono">4.2d</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color:var(--text3)">2</td>
+                <td>
+                  <div class="path-row" style="margin:0;flex-wrap:wrap;gap:4px">
+                    <span class="path-step" style="border-color:rgba(78,156,245,0.3);color:var(--google)">Google NB Search</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(78,156,245,0.3);color:var(--google)">Google Brand</span>
+                  </div>
+                </td>
+                <td class="mono highlight">218</td><td class="mono" style="color:var(--accent)">$48,240</td><td class="mono">2.0</td><td class="mono">1.8d</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color:var(--text3)">3</td>
+                <td>
+                  <div class="path-row" style="margin:0;flex-wrap:wrap;gap:4px">
+                    <span class="path-step" style="border-color:rgba(123,104,239,0.3);color:var(--meta)">Meta Prospecting</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(123,104,239,0.3);color:var(--meta)">Meta Retarget</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(78,156,245,0.3);color:var(--google)">Google Shopping</span>
+                  </div>
+                </td>
+                <td class="mono highlight">162</td><td class="mono" style="color:var(--accent)">$34,020</td><td class="mono">3.0</td><td class="mono">7.4d</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color:var(--text3)">4</td>
+                <td>
+                  <div class="path-row" style="margin:0;flex-wrap:wrap;gap:4px">
+                    <span class="path-step" style="border-color:rgba(52,208,155,0.3);color:var(--ga4)">Organic Search</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(78,156,245,0.3);color:var(--google)">Google Brand</span>
+                  </div>
+                </td>
+                <td class="mono highlight">148</td><td class="mono" style="color:var(--accent)">$31,080</td><td class="mono">2.0</td><td class="mono">2.1d</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color:var(--text3)">5</td>
+                <td>
+                  <div class="path-row" style="margin:0;flex-wrap:wrap;gap:4px">
+                    <span class="path-step" style="border-color:rgba(123,104,239,0.3);color:var(--meta)">Meta Awareness</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(52,208,155,0.3);color:var(--ga4)">Organic</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(255,255,255,0.15);color:var(--text2)">Email</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(78,156,245,0.3);color:var(--google)">Google Brand</span>
+                  </div>
+                </td>
+                <td class="mono highlight">94</td><td class="mono" style="color:var(--accent)">$21,620</td><td class="mono">4.0</td><td class="mono">12.8d</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color:var(--text3)">6</td>
+                <td>
+                  <div class="path-row" style="margin:0;flex-wrap:wrap;gap:4px">
+                    <span class="path-step" style="border-color:rgba(78,156,245,0.3);color:var(--google)">Google Shopping</span>
+                  </div>
+                </td>
+                <td class="mono highlight">204</td><td class="mono" style="color:var(--accent)">$20,196</td><td class="mono">1.0</td><td class="mono">0d</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color:var(--text3)">7</td>
+                <td>
+                  <div class="path-row" style="margin:0;flex-wrap:wrap;gap:4px">
+                    <span class="path-step" style="border-color:rgba(255,255,255,0.15);color:var(--text2)">Email (Welcome)</span>
+                    <span class="path-arrow">→</span>
+                    <span class="path-step" style="border-color:rgba(78,156,245,0.3);color:var(--google)">Google Brand</span>
+                  </div>
+                </td>
+                <td class="mono highlight">112</td><td class="mono" style="color:var(--accent)">$18,480</td><td class="mono">2.0</td><td class="mono">3.4d</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight">
+          <div class="insight-head">⚡ Path Analysis — Key Takeaways</div>
+          <div class="insight-body">Path #1 is the dominant pattern: <strong>Meta discovers → Google Brand converts</strong>. This explains why last-click over-credits Google. Path #3 reveals a 7.4-day consideration cycle for customers who need two Meta exposures before converting via Shopping — a strong case for extending the Meta retargeting window from 7 to 14 days. Path #5 shows the longest consideration cycle (12.8 days, 4 touchpoints) but represents your highest-complexity buyer — likely a wholesale buyer evaluating multiple suppliers. Email functions as a critical mid-path nurture signal in this segment.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== ANALYST INSIGHTS =================== -->
+    <div id="page-analysis" class="page">
+      <div class="content">
+        <div class="insight" style="background:rgba(52,208,155,0.04);border-color:rgba(52,208,155,0.18);">
+          <div class="insight-head" style="color:var(--ga4);">ℹ️ Analyst Context — Methodology Note</div>
+          <div class="insight-body">This attribution framework was designed and built by <strong>Kriti Singhal</strong> (CRM Media Analyst, joined Baz Bros July 2025). Q1 2026 figures are <strong>forward projections</strong> modeled from H2 2025 actuals using channel-level growth rates, seasonal indices from prior years, and spend trajectory confirmed with the paid media team in Dec 2025. The attribution model logic, channel overlap matrix, and path analysis methodology reflect infrastructure put in place between Jul–Dec 2025.</div>
+        </div>
+
+        <div class="insight">
+          <div class="insight-head">🎯 Strategic Finding 1 — The Attribution Gap Is Costing Budget Efficiency</div>
+          <div class="insight-body">Under last-click attribution, Google Ads appears to deliver <strong>$148K of $387K projected revenue (38%)</strong>. Under data-driven attribution, that drops to <strong>$114K (29%)</strong> — a $34K overstatement. This pattern was identified in H2 2025 actuals and is projected to persist into Q1 2026 without intervention. The fix: implement GA4 data-driven attribution as the reporting standard, enforce UTM parameters on all paid creative, and reduce Google Brand bid caps by 15-20% to test demand elasticity without incremental Meta investment.</div>
+        </div>
+        <div class="insight warn">
+          <div class="insight-head">⚠️ Strategic Finding 2 — iOS Attribution Blind Spot</div>
+          <div class="insight-body">Approximately <strong>38% of Meta's iOS traffic generates no GA4 session</strong> because ATT opt-outs prevent pixel firing. This means $44K of Meta-attributed revenue has no corresponding GA4 session — inflating the "Direct" channel and making Meta look less efficient than it is in GA4 reports. Mitigation: implement Meta CAPI (Conversions API) server-side tracking, which bypasses the browser pixel and is unaffected by ATT. Estimated recovery: <strong>+12-18% of previously untracked Meta conversions</strong>.</div>
+        </div>
+        <div class="insight">
+          <div class="insight-head">🎯 Strategic Finding 3 — Amazon Is a Parallel Ecosystem, Not an Assist Channel</div>
+          <div class="insight-body">Channel overlap analysis confirms Amazon touchpoints appear in only <strong>8-12% of cross-channel conversion paths</strong> — Amazon buyers rarely engage with Google or Meta ads in the same path. Amazon should be treated as a separate P&L with TACOS (14.2%) as the primary efficiency metric, not included in blended ROAS calculations. This also means Amazon ad budget decisions should not be made in reference to Google/Meta performance — they serve distinct buyer behaviors (convenience + price comparison vs brand discovery).</div>
+        </div>
+        <div class="insight">
+          <div class="insight-head">🎯 Strategic Finding 4 — Email Is Underinvested and Outperforming</div>
+          <div class="insight-body">Email delivers a <strong>4.21% CVR</strong> — the highest of any channel — and appears as a mid-path assist in 12.8-day consideration paths. It receives <strong>zero paid acquisition spend</strong> yet contributes $28-38K in attributed revenue depending on the model. Baz Bros should invest in list growth: a Meta Lead Gen campaign targeting vintage fashion buyers at a $5 CPL would generate ~1,000 new subscribers/month at $5K spend, with estimated 6-month email LTV of $48+ per subscriber based on current email CVR and AOV.</div>
+        </div>
+        <div class="insight danger">
+          <div class="insight-head">🔴 Strategic Finding 5 — Homepage Paid Landing Has 51% Bounce Rate</div>
+          <div class="insight-body">Paid traffic landing on <strong>bazbrosvintage.com/</strong> (home page) has a <strong>51.2% bounce rate</strong> vs 22-28% for product-specific landing pages. This is burning an estimated <strong>$4,200/quarter in wasted ad spend</strong> (based on average CPC × bounced sessions). Immediate fix: ensure all paid campaigns deep-link to collection or product pages. All PMax campaigns should use custom URLs with UTM parameters. All Meta ads should send to the collection page matching the creative's product category — not the home page.</div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-header"><div class="section-title">Prioritized Action Plan</div><span class="tag tag-attr">Ranked by Impact</span></div>
+          <table>
+            <thead><tr><th>#</th><th>Action</th><th>Owner</th><th>Est. Impact</th><th>Effort</th><th>Timeline</th></tr></thead>
+            <tbody>
+              <tr><td class="mono" style="color:var(--red)">P0</td><td class="highlight">Enforce UTM parameters on all paid campaigns</td><td class="mono">Kriti + Paid team</td><td class="mono" style="color:var(--accent)">Attribution accuracy ↑</td><td class="mono">Low</td><td class="mono">1 week</td></tr>
+              <tr><td class="mono" style="color:var(--red)">P0</td><td class="highlight">Switch reporting to GA4 data-driven attribution</td><td class="mono">Kriti</td><td class="mono" style="color:var(--accent)">True ROAS visibility</td><td class="mono">Low</td><td class="mono">1 week</td></tr>
+              <tr><td class="mono" style="color:var(--amazon)">P1</td><td class="highlight">Deep-link all paid ads to product/collection pages</td><td class="mono">Paid + Creative</td><td class="mono" style="color:var(--accent)">+$4.2K saved/qtr</td><td class="mono">Low</td><td class="mono">2 weeks</td></tr>
+              <tr><td class="mono" style="color:var(--amazon)">P1</td><td class="highlight">Implement Meta CAPI server-side tracking</td><td class="mono">Dev + Kriti</td><td class="mono" style="color:var(--accent)">+12-18% tracked convs</td><td class="mono">Medium</td><td class="mono">3 weeks</td></tr>
+              <tr><td class="mono" style="color:var(--amazon)">P1</td><td class="highlight">Extend Meta retargeting window 7d → 14d</td><td class="mono">Paid Social</td><td class="mono" style="color:var(--accent)">Path #3 ROAS ↑</td><td class="mono">Low</td><td class="mono">1 week</td></tr>
+              <tr><td class="mono" style="color:var(--google)">P2</td><td class="highlight">Launch Meta Lead Gen campaign for email list growth</td><td class="mono">Kriti + Creative</td><td class="mono" style="color:var(--accent)">$48 LTV/subscriber</td><td class="mono">Medium</td><td class="mono">4 weeks</td></tr>
+              <tr><td class="mono" style="color:var(--google)">P2</td><td class="highlight">Reduce Google Brand bid caps 15-20%</td><td class="mono">SEM Manager</td><td class="mono" style="color:var(--accent)">Reallocate $3K/mo</td><td class="mono">Low</td><td class="mono">2 weeks</td></tr>
+              <tr><td class="mono" style="color:var(--ga4)">P3</td><td class="highlight">Separate Amazon TACOS reporting from blended ROAS</td><td class="mono">Kriti</td><td class="mono" style="color:var(--accent)">Budget clarity</td><td class="mono">Low</td><td class="mono">1 week</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+const pageTitles = {
+  overview: ['Executive Summary', 'Q1 2026 · All Channels · Los Angeles, CA · Projected'],
+  google: ['Google Ads', 'Acct 482-910-3847 · Search + Shopping + PMax · Q1 2026 · Projected'],
+  meta: ['Meta Ads', 'act_1892047360 · Facebook + Instagram + Reels · Q1 2026 · Projected'],
+  amazon: ['Amazon Ads', 'BazBrosVintage Seller Central · SP + SB + SD · Q1 2026 · Projected'],
+  ga4: ['GA4 Analytics', 'Property 384-920-4710 · bazbrosvintage.com · Q1 2026 · Projected'],
+  attribution: ['Attribution Model Comparison', '5 Models · Last Click → Data-Driven · Q1 2026 · Projected'],
+  paths: ['Conversion Paths', '847 paths analyzed · 30-day lookback · Q1 2026 · Projected'],
+  analysis: ['Analyst Insights & Actions', 'Strategic findings + prioritized action plan · Q1 2026 · Projected'],
+};
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[id][0];
+  document.getElementById('page-sub').textContent = pageTitles[id][1];
+}
+
+// Attribution bar data
+const models = {
+  lc: {Google:148240,Meta:87140,Amazon:58100,Organic:24840,Email:38480,Direct:14840},
+  fc: {Google:92840,Meta:142840,Amazon:54280,Organic:42840,Email:12840,Direct:24840},
+  lin:{Google:118420,Meta:114280,Amazon:56840,Organic:32840,Email:28420,Direct:16840},
+  td: {Google:138480,Meta:94820,Amazon:57480,Organic:28480,Email:36240,Direct:12840},
+  dd: {Google:114060,Meta:115820,Amazon:58100,Organic:38480,Email:28840,Direct:11940},
+};
+const colors = {Google:'var(--google)',Meta:'var(--meta)',Amazon:'var(--amazon)',Organic:'var(--ga4)',Email:'#c084fc',Direct:'var(--text3)'};
+
+function renderBars(modelKey) {
+  const data = models[modelKey];
+  const max = Math.max(...Object.values(data));
+  const container = document.getElementById('attr-bars');
+  container.innerHTML = Object.entries(data).map(([ch, val]) => `
+    <div class="attr-bar-row">
+      <div class="attr-ch-label" style="color:${colors[ch]}">${ch}</div>
+      <div class="attr-bar-track">
+        <div class="attr-bar-fill" style="width:${Math.round(val/max*100)}%;background:${colors[ch]};color:#0a0a0b">
+          $${(val/1000).toFixed(0)}K
+        </div>
+      </div>
+      <div class="attr-val">$${(val/1000).toFixed(1)}K</div>
+    </div>`).join('');
+}
+
+function setModel(key, el) {
+  document.querySelectorAll('.model-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderBars(key);
+}
+
+renderBars('lc');
+</script>
+</body>
+</html>
